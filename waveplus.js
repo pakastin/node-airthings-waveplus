@@ -72,7 +72,7 @@ function connect (wavePlus, device, peripheral) {
 
   wavePlus._readingThrottle[peripheral.id] = setTimeout(() => {
     wavePlus._readingThrottle[peripheral.id] = null;
-  }, this.wavePlus._readingThrottleValue || 60 * 1000);
+  }, wavePlus._readingThrottleValue || 60 * 1000);
 
   if (wavePlus._readingLookup[peripheral.id]) {
     return;
