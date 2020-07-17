@@ -12,7 +12,7 @@ class WavePlusDevice extends EventEmitter {
 }
 
 class WavePlus extends EventEmitter {
-  constructor (adapter) {
+  constructor (adapter, throttle) {
     super();
     this.uuid = ['b42e2a68ade711e489d3123b93f75cba'];
     this._adapter = adapter;
@@ -20,6 +20,8 @@ class WavePlus extends EventEmitter {
     this._deviceLookup = {};
     this._readingLookup = {};
     this._readingTimeout = {};
+    this._readingThrottleValue = throttle;
+    this._readingThrottle = null;
     this.sensorData = [];
 
     const registerDevice = device => {
@@ -64,6 +66,12 @@ class WavePlus extends EventEmitter {
 module.exports = WavePlus;
 
 function connect (wavePlus, device, peripheral) {
+  if (wavePlus._readingThrottle) {
+    return;
+  }
+  wavePlus._readingThrottle = setTimeout(() => {
+    wavePlus._readingThrottle = null;
+  }, this.wavePlus._readingThrottleValue || 60 * 1000);
   if (wavePlus._readingLookup[peripheral.id]) {
     return;
   }
