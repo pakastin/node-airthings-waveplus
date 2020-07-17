@@ -21,7 +21,7 @@ class WavePlus extends EventEmitter {
     this._readingLookup = {};
     this._readingTimeout = {};
     this._readingThrottleValue = throttle;
-    this._readingThrottle = null;
+    this._readingThrottle = {};
     this.sensorData = [];
 
     const registerDevice = device => {
@@ -66,20 +66,24 @@ class WavePlus extends EventEmitter {
 module.exports = WavePlus;
 
 function connect (wavePlus, device, peripheral) {
-  if (wavePlus._readingThrottle) {
+  if (wavePlus._readingThrottle[peripheral.id]) {
     return;
   }
-  wavePlus._readingThrottle = setTimeout(() => {
-    wavePlus._readingThrottle = null;
+
+  wavePlus._readingThrottle[peripheral.id] = setTimeout(() => {
+    wavePlus._readingThrottle[peripheral.id] = null;
   }, this.wavePlus._readingThrottleValue || 60 * 1000);
+
   if (wavePlus._readingLookup[peripheral.id]) {
     return;
   }
-  wavePlus._readingTimeout[peripheral._id] = setTimeout(() => {
-    if (wavePlus._readingLookup[peripheral._id]) {
+
+  wavePlus._readingTimeout[peripheral.id] = setTimeout(() => {
+    if (wavePlus._readingLookup[peripheral.id]) {
       disconnect(device, peripheral);
     }
   }, 60 * 1000);
+
   wavePlus._readingLookup[peripheral.id] = true;
 
   wavePlus._adapter.stop();
@@ -131,7 +135,7 @@ function disconnect (wavePlus, peripheral) {
     if (error) {
       throw new Error(error);
     }
-    clearTimeout(wavePlus._readingTimeout[peripheral._id]);
+    clearTimeout(wavePlus._readingTimeout[peripheral.id]);
     wavePlus._readingLookup[peripheral.id] = null;
 
     wavePlus._adapter.start();
